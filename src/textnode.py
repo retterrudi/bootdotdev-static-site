@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 from src.htmlnode import LeafNode
 
@@ -12,9 +13,9 @@ class TextType(Enum):
 
 class TextNode:
     def __init__(self, text, text_type: TextType, url = None):
-        self.text = text
-        self.text_type = text_type.value
-        self.url = url
+        self.text: str = text
+        self.text_type: str = text_type.value
+        self.url: Union[str|None] = url
 
     def __eq__(self, other):
         if isinstance(other, TextNode):
