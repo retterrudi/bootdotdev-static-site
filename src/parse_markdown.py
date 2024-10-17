@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Tuple
+import re
 
 from src.textnode import TextNode, TextType
 
@@ -39,3 +40,14 @@ def split_single_node(node: 'TextNode', delimiter: str) -> List['TextNode']:
         else:
             new_nodes.append(TextNode(block, text_type_dict[delimiter]))
     return new_nodes
+
+
+def extract_markdown_images(text: str) -> List[tuple]:
+    pattern = r'!\[([^\[\]]*)\]\(([^\(\)]*)\)'
+    matches = re.findall(pattern, text)
+    return matches
+
+def extract_markdown_links(text: str) -> List[tuple]:
+    pattern = r'[^!]\[([^\[\]]*)\]\(([^\(\)]*)\)'
+    matches = re.findall(pattern, text)
+    return matches

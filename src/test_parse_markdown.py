@@ -1,10 +1,10 @@
 import unittest
 
-from src.parse_markdown import split_nodes_delimiter
+from src.parse_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
 from src.textnode import TextNode, TextType
 
 
-class MyTestCase(unittest.TestCase):
+class TestSplitNodes(unittest.TestCase):
     def test_nothingToSplit(self):
         old_nodes = [
             TextNode('Here is some text', TextType.TEXT),
@@ -100,6 +100,58 @@ class MyTestCase(unittest.TestCase):
         ]
 
         self.assertEqual(expected_nodes, new_nodes)
+
+
+class TestExtractMarkdownImages(unittest.TestCase):
+    def test_noMatch(self):
+        text = 'Nothing to see here!'
+        images = extract_markdown_images(text)
+        expected = []
+        self.assertEqual(expected, images)
+
+    def test_singleMatch(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif)"
+        images = extract_markdown_images(text)
+        expected = [('rick roll', 'https://i.imgur.com/aKaOqIh.gif')]
+        self.assertEqual(expected, images)
+
+    def test_multipleMatches(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)"
+        images = extract_markdown_images(text)
+        expected = [('rick roll', 'https://i.imgur.com/aKaOqIh.gif'), ('obi wan', 'https://i.imgur.com/fJRm4Vk.jpeg')]
+        self.assertEqual(expected, images)
+
+    def test_noMatchForLink(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev)"
+        images = extract_markdown_images(text)
+        expected = []
+        self.assertEqual(expected, images)
+
+
+class TestExtractMarkdownLinks(unittest.TestCase):
+    def test_noMatch(self):
+        text = 'Nothing to see here!'
+        links = extract_markdown_links(text)
+        expected = []
+        self.assertEqual(expected, links)
+
+    def test_singleMatch(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev)"
+        links = extract_markdown_links(text)
+        expected = [('to boot dev', 'https://www.boot.dev')]
+        self.assertEqual(expected, links)
+
+    def test_multipleMatches(self):
+        text = "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)"
+        links = extract_markdown_links(text)
+        expected = [('to boot dev', 'https://www.boot.dev'), ('to youtube', 'https://www.youtube.com/@bootdotdev')]
+        self.assertEqual(expected, links)
+
+    def test_noMatchForAnImage(self):
+        text = "This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif)"
+        links = extract_markdown_links(text)
+        expected = []
+        self.assertEqual(expected, links)
 
 
 if __name__ == '__main__':

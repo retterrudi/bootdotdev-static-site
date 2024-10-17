@@ -11,6 +11,7 @@ class TextType(Enum):
     LINK = 'link'
     IMAGE = 'image'
 
+
 class TextNode:
     def __init__(self, text, text_type: TextType, url = None):
         self.text: str = text
@@ -28,6 +29,7 @@ class TextNode:
 
     def __repr__(self) -> str:
         return f'TextNode({self.text}, {self.text_type}, {self.url})'
+
 
 def text_node_to_html(text_node: TextNode) -> LeafNode:
     if text_node.text_type == TextType.TEXT.value:
