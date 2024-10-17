@@ -2,7 +2,7 @@ import unittest
 from imp import new_module
 
 from src.parse_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_link, \
-    split_nodes_image, text_to_textnodes, markdown_to_blocks
+    split_nodes_image, text_to_textnodes, markdown_to_blocks, block_to_block_type, BlockType
 from src.textnode import TextNode, TextType
 
 
@@ -352,6 +352,92 @@ This is a paragraph of text. It has some **bold** and *italic* words inside of i
         blocks = markdown_to_blocks(text)
 
         self.assertEqual(['# This is a heading'], blocks)
+
+
+class TestBlockToBlockType(unittest.TestCase):
+    def test_empty(self):
+        block = ''
+        block_type = block_to_block_type(block)
+
+        self.assertEqual(BlockType.PARAGRAPH, block_type)
+
+    def test_paragraph(self):
+        block = 'This is a normal text paragraph'
+        block_type = block_to_block_type(block)
+
+        self.assertEqual(BlockType.PARAGRAPH, block_type)
+
+    def test_heading(self):
+        block = '# This is a first level heading'
+        block_type = block_to_block_type(block)
+
+        self.assertEqual(BlockType.HEADING, block_type)
+
+        block = '## This is a second level heading'
+        block_type = block_to_block_type(block)
+
+        self.assertEqual(BlockType.HEADING, block_type)
+
+        block = '### This is a third level heading'
+        block_type = block_to_block_type(block)
+
+        self.assertEqual(BlockType.HEADING, block_type)
+
+        block = '#### This is a fourth level heading'
+        block_type = block_to_block_type(block)
+
+        self.assertEqual(BlockType.HEADING, block_type)
+
+        block = '##### This is a fifth level heading'
+        block_type = block_to_block_type(block)
+
+        self.assertEqual(BlockType.HEADING, block_type)
+
+        block = '###### This is a sixth level heading'
+        block_type = block_to_block_type(block)
+
+        self.assertEqual(BlockType.HEADING, block_type)
+
+    def test_codeBlock(self):
+        block = """```python
+print('Hello, World!)
+```"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(BlockType.CODE, block_type)
+
+        block = "```print('Hello, World!)```"
+        block_type = block_to_block_type(block)
+        self.assertEqual(BlockType.CODE, block_type)
+
+    def test_quoteBlock(self):
+        block = """>This is a quote
+>citing an important person
+>telling facts"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(BlockType.QUOTE, block_type)
+
+    def test_unorderedListBlock(self):
+        block = """* First point
+* Second point
+- Thirst point"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(BlockType.UNORDERED_LIST, block_type)
+
+    def test_orderedListBlock(self):
+        block = """1. First Point
+2. Second Point"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(BlockType.ORDERED_LIST, block_type)
+
+        block = """0. First Point
+1. Second Point"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(BlockType.PARAGRAPH, block_type)
+
+        block = """1. First Point
+3. Second Point"""
+        block_type = block_to_block_type(block)
+        self.assertEqual(BlockType.PARAGRAPH, block_type)
 
 if __name__ == '__main__':
     unittest.main()

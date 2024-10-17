@@ -1,4 +1,5 @@
 import re
+from enum import Enum
 from typing import List
 
 from src.textnode import TextNode, TextType
@@ -113,3 +114,54 @@ def markdown_to_blocks(markdown: str) -> List[str]:
     trimmed_blocks = [block.strip() for block in filtered_blocks]
 
     return trimmed_blocks
+
+class BlockType(Enum):
+    PARAGRAPH = 'paragraph'
+    HEADING = 'heading'
+    CODE = 'code'
+    QUOTE = 'quote'
+    UNORDERED_LIST = 'unordered_list'
+    ORDERED_LIST = 'ordered_list'
+
+
+def block_to_block_type(block: str) -> 'BlockType':
+    if is_heading_block(block):
+        return BlockType.HEADING
+    elif is_code_block(block):
+        return BlockType.CODE
+    elif is_quote_block(block):
+        return BlockType.QUOTE
+    elif is_unordered_list_block(block):
+        return BlockType.UNORDERED_LIST
+    elif is_ordered_list_block(block):
+        return BlockType.ORDERED_LIST
+    else:
+        return BlockType.PARAGRAPH
+
+
+def is_heading_block(block: str) -> bool:
+    return block.startswith(('#', '##', '###', '####', '#####', '######'))
+
+def is_code_block(block: str) -> bool:
+    return block.startswith('```') and block.endswith('```')
+
+def is_quote_block(block: str) -> bool:
+    lines = block.split('\n')
+    for line in lines:
+        if not line.startswith('>'):
+            return False
+    return True
+
+def is_unordered_list_block(block: str) -> bool:
+    lines = block.split('\n')
+    for line in lines:
+        if not line.startswith(('- ', '* ')):
+            return False
+    return True
+
+def is_ordered_list_block(block: str) -> bool:
+    lines = block.split('\n')
+    for index, line in enumerate(lines):
+        if not line.startswith(f'{index + 1}.'):
+            return False
+    return True
