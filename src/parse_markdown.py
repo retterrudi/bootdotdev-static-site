@@ -3,7 +3,11 @@ from typing import List
 from src.textnode import TextNode, TextType
 
 
-def split_nodes_delimiter(old_nodes: List['TextNode'], delimiter: str, text_type: TextType) -> List['TextNode']:
+def split_nodes_delimiter(
+        old_nodes: List['TextNode'],
+        delimiter: str,
+        text_type: TextType
+) -> List['TextNode']:
     new_nodes = []
 
     for node in old_nodes:
