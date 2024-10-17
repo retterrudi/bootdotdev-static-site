@@ -98,3 +98,11 @@ def extract_markdown_links(text: str) -> List[tuple]:
     matches = re.findall(pattern, text)
     return matches
 
+def text_to_textnodes(text: str) -> List['TextNode']:
+    old_nodes = [TextNode(text, TextType.TEXT)]
+    bold_nodes = split_nodes_delimiter(old_nodes, '**', TextType.BOLD)
+    italic_nodes = split_nodes_delimiter(bold_nodes, '*', TextType.ITALIC)
+    code_nodes = split_nodes_delimiter(italic_nodes, '`', TextType.CODE)
+    image_nodes = split_nodes_image(code_nodes)
+    link_nodes = split_nodes_link(image_nodes)
+    return link_nodes
