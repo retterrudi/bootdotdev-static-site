@@ -1,5 +1,5 @@
-from typing import List, Tuple
 import re
+from typing import List
 
 from src.textnode import TextNode, TextType
 
@@ -41,6 +41,52 @@ def split_single_node(node: 'TextNode', delimiter: str) -> List['TextNode']:
             new_nodes.append(TextNode(block, text_type_dict[delimiter]))
     return new_nodes
 
+def split_nodes_image(old_nodes: List['TextNode']) -> List['TextNode']:
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT.value:
+            new_nodes.append(node)
+        else:
+            images = extract_markdown_images(node.text)
+            if len(images) == 0:
+                new_nodes.append(node)
+            else:
+                text = node.text
+                for (alt_text, url) in images:
+                    split_text = text.split(f'![{alt_text}]({url})')
+                    if split_text[0] != '':
+                        new_nodes.append(TextNode(split_text[0], TextType.TEXT))
+                    new_nodes.append(TextNode(alt_text, TextType.IMAGE, url))
+                    split_text.pop(0)
+                    text = ''.join(split_text)
+                if text != '':
+                    new_nodes.append(TextNode(text, TextType.TEXT))
+
+    return new_nodes
+
+
+def split_nodes_link(old_nodes: List['TextNode']) -> List['TextNode']:
+    new_nodes = []
+    for node in old_nodes:
+        if node.text_type != TextType.TEXT.value:
+            new_nodes.append(node)
+        else:
+            links = extract_markdown_links(node.text)
+            if len(links) == 0:
+                new_nodes.append(node)
+            else:
+                text = node.text
+                for (alt_text, url) in links:
+                    split_text = text.split(f'[{alt_text}]({url})')
+                    if split_text[0] != '':
+                        new_nodes.append(TextNode(split_text[0], TextType.TEXT))
+                    new_nodes.append(TextNode(alt_text, TextType.LINK, url))
+                    split_text.pop(0)
+                    text = ''.join(split_text)
+                if text != '':
+                    new_nodes.append(TextNode(text, TextType.TEXT))
+
+    return new_nodes
 
 def extract_markdown_images(text: str) -> List[tuple]:
     pattern = r'!\[([^\[\]]*)\]\(([^\(\)]*)\)'
@@ -48,6 +94,7 @@ def extract_markdown_images(text: str) -> List[tuple]:
     return matches
 
 def extract_markdown_links(text: str) -> List[tuple]:
-    pattern = r'[^!]\[([^\[\]]*)\]\(([^\(\)]*)\)'
+    pattern = r'(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)'
     matches = re.findall(pattern, text)
     return matches
+
