@@ -1,7 +1,6 @@
-from textnode import TextNode
+from handle_files import move_files
 
 def main():
-    textnode = TextNode("This is a text node", "bold", "https://www.bot.dev")
-    print(textnode)
+    move_files('static', 'public')
 
 main()
