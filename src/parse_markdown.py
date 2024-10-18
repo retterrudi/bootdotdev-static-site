@@ -2,7 +2,8 @@ import re
 from enum import Enum
 from typing import List
 
-from src.textnode import TextNode, TextType
+from src.htmlnode import HTMLNode, ParentNode, LeafNode
+from src.textnode import TextNode, TextType, text_node_to_html
 
 
 def split_nodes_delimiter(
@@ -165,3 +166,94 @@ def is_ordered_list_block(block: str) -> bool:
         if not line.startswith(f'{index + 1}.'):
             return False
     return True
+
+def markdown_to_html_node(markdown: str) -> 'HTMLNode':
+    blocks = markdown_to_blocks(markdown)
+    child_nodes = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        if block_type == BlockType.HEADING:
+            child_nodes.append(block_to_heading(block))
+        elif block_type == BlockType.CODE:
+            child_nodes.append(block_to_code(block))
+        elif block_type == BlockType.QUOTE:
+            child_nodes.append(block_to_quote(block))
+        elif block_type == BlockType.ORDERED_LIST:
+            child_nodes.append(block_to_ordered_list(block))
+        elif block_type == BlockType.UNORDERED_LIST:
+            child_nodes.append(block_to_unordered_list(block))
+        elif block_type == BlockType.PARAGRAPH:
+            child_nodes.append(block_to_paragraph(block))
+        else:
+            raise ValueError(f'Unknown block type: {block_type}')
+
+    return ParentNode('div', child_nodes, None)
+
+def block_to_heading(block: str) -> 'HTMLNode':
+    split_block = block.split('#')
+    heading_level = len(split_block) - 1
+    text = str(split_block[-1]).strip()
+    return ParentNode(
+        tag = f'h{heading_level}',
+        children=[LeafNode(None, text, None)],
+        props=None)
+
+def block_to_quote(block: str) -> 'HTMLNode':
+    lines = block.splitlines(True)
+    lines = map(lambda line: str(line).removeprefix('>'), lines)
+    text = ''.join(lines)
+    return ParentNode(
+        tag='blockquote',
+        children=list(map(lambda it: text_node_to_html(it), text_to_textnodes(text))),
+        props=None,
+    )
+
+def block_to_unordered_list(block: str) -> 'HTMLNode':
+    return HTMLNode(
+        tag='ul',
+        value=None,
+        children=[ParentNode(
+            'li',
+            children=list(map(
+                lambda it: text_node_to_html(it),
+                text_to_textnodes(line[2:].strip())))) for line in block.splitlines(True)
+        ],
+        props=None
+    )
+
+def block_to_ordered_list(block: str) -> 'HTMLNode':
+    return ParentNode(
+        tag='ol',
+        children=[
+            ParentNode(
+                'li',
+                children=list(map(
+                    lambda it: text_node_to_html(it),
+                    text_to_textnodes(line.split('. ', 1)[1].strip())))) for line in block.splitlines(True)
+        ],
+        props=None
+    )
+
+def block_to_code(block: str) -> 'HTMLNode':
+    # <pre>
+    #   <code>...
+    #   </code>
+    # </pre>
+    return ParentNode(
+        tag='pre',
+        children=[
+            LeafNode(
+                tag='code',
+                value=block.removeprefix('```').removesuffix('```').strip(),
+                props=None
+            )
+        ],
+        props=None
+    )
+
+def block_to_paragraph(block: str) -> 'HTMLNode':
+    return ParentNode(
+        tag='p',
+        children=list(map(lambda it: text_node_to_html(it), text_to_textnodes(block))),
+        props=None
+    )
