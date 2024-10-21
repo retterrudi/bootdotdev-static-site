@@ -2,8 +2,8 @@ import re
 from enum import Enum
 from typing import List
 
-from src.htmlnode import HTMLNode, ParentNode, LeafNode
-from src.textnode import TextNode, TextType, text_node_to_html
+from htmlnode import HTMLNode, ParentNode, LeafNode
+from textnode import TextNode, TextType, text_node_to_html
 
 
 def split_nodes_delimiter(
@@ -200,7 +200,7 @@ def block_to_heading(block: str) -> 'HTMLNode':
 
 def block_to_quote(block: str) -> 'HTMLNode':
     lines = block.splitlines(True)
-    lines = map(lambda line: str(line).removeprefix('>'), lines)
+    lines = map(lambda line: str(line).removeprefix('>').strip(), lines)
     text = ''.join(lines)
     return ParentNode(
         tag='blockquote',
@@ -209,9 +209,8 @@ def block_to_quote(block: str) -> 'HTMLNode':
     )
 
 def block_to_unordered_list(block: str) -> 'HTMLNode':
-    return HTMLNode(
+    return ParentNode(
         tag='ul',
-        value=None,
         children=[ParentNode(
             'li',
             children=list(map(
@@ -257,3 +256,13 @@ def block_to_paragraph(block: str) -> 'HTMLNode':
         children=list(map(lambda it: text_node_to_html(it), text_to_textnodes(block))),
         props=None
     )
+
+def extract_title(markdown: str) -> str:
+    lines = markdown.splitlines(False)
+
+    for line in lines:
+        if line.startswith('# '):
+            return line.removeprefix('# ').strip()
+    raise ValueError('No title found')
+
+

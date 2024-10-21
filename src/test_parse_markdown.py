@@ -2,7 +2,7 @@ import unittest
 from imp import new_module
 
 from src.parse_markdown import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_link, \
-    split_nodes_image, text_to_textnodes, markdown_to_blocks, block_to_block_type, BlockType
+    split_nodes_image, text_to_textnodes, markdown_to_blocks, block_to_block_type, BlockType, extract_title
 from src.textnode import TextNode, TextType
 
 
@@ -438,6 +438,26 @@ print('Hello, World!)
 3. Second Point"""
         block_type = block_to_block_type(block)
         self.assertEqual(BlockType.PARAGRAPH, block_type)
+
+
+class TestExtractTitle(unittest.TestCase):
+    def test_emptyMarkdown(self):
+        with self.assertRaises(ValueError):
+            title = extract_title('')
+
+    def test_singleLine(self):
+        markdown = """# This is the title"""
+        title = extract_title(markdown)
+        self.assertEqual('This is the title', title)
+
+    def test_multiLine(self):
+        markdown = """
+# This is the title
+
+and this is some text"""
+        title = extract_title(markdown)
+        self.assertEqual('This is the title', title)
+
 
 if __name__ == '__main__':
     unittest.main()
