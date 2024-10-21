@@ -28,11 +28,9 @@ def move_files(source: str, destination: str) -> None:
 def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
     print(f'Generating page from "{from_path}" to "{dest_path}" using "{template_path}"')
 
-    # markdown = ''
     with open(from_path) as file:
         markdown = file.read()
 
-    # template_text = ''
     with open(template_path) as file:
         template_text = file.read()
 
@@ -47,3 +45,21 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
 
     with open(dest_path, 'w+') as file:
         file.write(site)
+
+def generate_page_recursive(dir_path_content: str, template_path: str, dest_dir_path: str) -> None:
+    if not os.path.isdir(dir_path_content):
+        raise ValueError(f'source has to be a directory: {dir_path_content}')
+
+    if not os.path.exists(dest_dir_path):
+        os.mkdir(dest_dir_path)
+
+    content_list = os.listdir(dir_path_content)
+    for item in content_list:
+        content_path = os.path.join(dir_path_content, item)
+        destination_path = os.path.join(dest_dir_path, item)
+        print(content_path)
+        if os.path.isdir(content_path):
+            generate_page_recursive(content_path, template_path, destination_path)
+        else:
+            destination_path = destination_path.replace('.md', '.html')
+            generate_page(content_path, template_path, destination_path)
